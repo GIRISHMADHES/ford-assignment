@@ -11,7 +11,7 @@ export default function MovieDetails() {
     const fetchData = async () => {
       try {
         const res = await axios.get(`https://api.tvmaze.com/shows/${id}`);
-        console.log("res", res.data);
+        // console.log("res", res.data);
         setData(res.data);
       } catch (error) {
         console.error("API call failed:", error);

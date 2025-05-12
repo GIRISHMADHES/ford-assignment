@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { Card, Col, Row, Container, Button, Dropdown } from "react-bootstrap";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
+import { debounce } from "lodash";
 
 export default function Dashboard() {
   const [data, setData] = useState([]);
@@ -14,13 +15,26 @@ export default function Dashboard() {
   const [year, setYear] = useState("");
   const [ratingSortOrder, setRatingSortOrder] = useState("high");
   const [favorites, setFavorites] = useState([]);
+  const [deSearch, setDeSearch] = useState('')
 
+
+  const debounceSearch = useCallback((
+    debounce((val)=>{
+      setDeSearch(val)
+    }, 500)
+  ),[])
+
+  const handleChangeInput = (e) =>{
+    const val = e.target.value
+    setSearch(val)
+    debounceSearch(val)
+  }
   const filteredData = data
-    .filter((item) => item.name.toLowerCase().includes(search.toLowerCase()))
+    .filter((item) => item.name.toLowerCase().includes(deSearch.toLowerCase()))
     .filter((item) => (year ? item.ended && item.ended.includes(year) : true))
     .sort((a, b) => {
       if (sortOrder) {
-        sortOrder === "asc"
+        return sortOrder === "asc"
           ? a.name.localeCompare(b.name)
           : b.name.localeCompare(a.name);
       }
@@ -42,8 +56,8 @@ export default function Dashboard() {
       } else {
         updatedFavorites = [...prevFavorites, item];
       }
-      localStorage.setItem("favorites", JSON.stringify(updatedFavorites))
-      return updatedFavorites
+      localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+      return updatedFavorites;
     });
   };
 
@@ -80,9 +94,9 @@ export default function Dashboard() {
     setFavorites(savedFavorites);
   }, []);
 
-  const favoritesClick = () =>{
-    navigate('/favorites')
-  }
+  const favoritesClick = () => {
+    navigate("/favorites");
+  };
 
   return (
     <>
@@ -93,7 +107,7 @@ export default function Dashboard() {
               placeholder="Search movie title"
               value={search}
               type="text"
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleChangeInput}
               className="me-3"
             />
             <Dropdown className="me-3">
@@ -102,10 +116,20 @@ export default function Dashboard() {
               </Dropdown.Toggle>
 
               <Dropdown.Menu>
-                <Dropdown.Item onClick={() => setSortOrder("asc")}>
+                <Dropdown.Item
+                  onClick={() => {
+                    setSortOrder("asc");
+                    setRatingSortOrder("");
+                  }}
+                >
                   A–Z
                 </Dropdown.Item>
-                <Dropdown.Item onClick={() => setSortOrder("desc")}>
+                <Dropdown.Item
+                  onClick={() => {
+                    setSortOrder("desc");
+                    setRatingSortOrder("");
+                  }}
+                >
                   Z–A
                 </Dropdown.Item>
               </Dropdown.Menu>
@@ -123,10 +147,20 @@ export default function Dashboard() {
               </Dropdown.Toggle>
 
               <Dropdown.Menu>
-                <Dropdown.Item onClick={() => setRatingSortOrder("high")}>
+                <Dropdown.Item
+                  onClick={() => {
+                    setRatingSortOrder("high");
+                    setSortOrder("");
+                  }}
+                >
                   High to Low
                 </Dropdown.Item>
-                <Dropdown.Item onClick={() => setRatingSortOrder("low")}>
+                <Dropdown.Item
+                  onClick={() => {
+                    setRatingSortOrder("low");
+                    setSortOrder("");
+                  }}
+                >
                   Low to High
                 </Dropdown.Item>
               </Dropdown.Menu>
@@ -137,7 +171,7 @@ export default function Dashboard() {
         <Row>
           <h1>Movie List</h1>
           {currentRows.map((item) => (
-            <Col xs={12} sm={6} md={4} lg={3} className="mb-4">
+            <Col xs={12} sm={6} md={4} lg={3} key={item.id} className="mb-4">
               <Card
                 key={item.id}
                 className="movies-card h-100"
